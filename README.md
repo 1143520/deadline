@@ -164,3 +164,18 @@ GET /api/notify?key=YOUR_CRON_SECRET&id=REMINDER_ID
 ## 许可证
 
 MIT License
+
+## 密码保护
+
+你可以通过设置环境变量来添加一个简单的密码保护功能：
+
+1. 在 Cloudflare Pages 的项目设置中，找到 "Environment variables" 部分
+2. 添加一个新的环境变量：
+   - 变量名：`PASSWORD`
+   - 变量值：你想设置的密码
+
+注意事项：
+- 如果不设置 PASSWORD 环境变量，网站将不会启用密码保护
+- 密码验证成功后会保存 30 天，期间无需重复输入
+- 这是一个基础的保护机制，主要用于防止随意访问
+- 建议使用复杂密码，因为密码是明文传输的

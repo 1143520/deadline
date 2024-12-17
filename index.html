@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -11,7 +12,15 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/themes/material_blue.css">
     <link rel="stylesheet" href="style.css">
 </head>
+
 <body>
+    <!-- 在body开始处添加密码验证层 -->
+    <div id="password-overlay" class="password-overlay">
+        <div class="password-container">
+            <input type="password" id="password-input" placeholder="请输入密码">
+            <button onclick="verifyPassword()">确认</button>
+        </div>
+    </div>
     <div class="container">
         <div class="header">
             <div class="title-wrapper">
@@ -22,8 +31,8 @@
             </div>
             <button id="openAddForm" class="add-button">📑添加新提醒</button>
         </div>
-        
-        <!-- ��出式添加提醒表单 -->
+
+        <!-- 出式添加提醒表单 -->
         <div id="addFormModal" class="modal">
             <div class="modal-content">
                 <div class="modal-header">
@@ -57,9 +66,7 @@
                             <button type="button" class="time-shortcut-btn" onclick="setDaysLater(29)">29天后</button>
                             <button type="button" class="time-shortcut-btn" onclick="setDaysLater(364)">364天后</button>
                         </div>
-                        <input type="datetime-local" 
-                               id="remindTime" 
-                               required>
+                        <input type="datetime-local" id="remindTime" required>
                     </div>
                     <div class="form-group">
                         <label for="cycleType">🔁循环类型:</label>
@@ -102,7 +109,8 @@
     <div id="toast" class="toast">
         <div class="toast-content">
             <svg class="toast-icon success" viewBox="0 0 1024 1024" width="16" height="16">
-                <path d="M512 64C264.6 64 64 264.6 64 512s200.6 448 448 448 448-200.6 448-448S759.4 64 512 64zm193.5 301.7l-210.6 292a31.8 31.8 0 0 1-51.7 0L318.5 484.9c-3.8-5.3 0-12.7 6.5-12.7h46.9c10.2 0 19.9 4.9 25.9 13.3l71.2 98.8 157.2-218c6-8.3 15.6-13.3 25.9-13.3H699c6.5 0 10.3 7.4 6.5 12.7z"/>
+                <path
+                    d="M512 64C264.6 64 64 264.6 64 512s200.6 448 448 448 448-200.6 448-448S759.4 64 512 64zm193.5 301.7l-210.6 292a31.8 31.8 0 0 1-51.7 0L318.5 484.9c-3.8-5.3 0-12.7 6.5-12.7h46.9c10.2 0 19.9 4.9 25.9 13.3l71.2 98.8 157.2-218c6-8.3 15.6-13.3 25.9-13.3H699c6.5 0 10.3 7.4 6.5 12.7z" />
             </svg>
             <span id="toastMessage"></span>
         </div>
@@ -155,7 +163,7 @@
 
         // 使用相对路径，自动适应当前域名
         const API_BASE = '/api/reminders';
-        
+
         // 格式化时间
         function formatDateTime(date) {
             const d = new Date(date);
@@ -172,7 +180,7 @@
 
         // 自定义确认窗口
         let confirmResolve = null;
-        
+
         function showConfirm(message) {
             return new Promise((resolve) => {
                 const modal = document.getElementById('confirmModal');
@@ -197,11 +205,11 @@
             const toast = document.getElementById('toast');
             const toastMessage = document.getElementById('toastMessage');
             const icon = toast.querySelector('.toast-icon');
-            
+
             toastMessage.textContent = message;
             toast.className = `toast show ${type}`;
             icon.className = `toast-icon ${type}`;
-            
+
             // 3秒后自动消失
             setTimeout(() => {
                 toast.className = 'toast';
@@ -240,7 +248,7 @@
         // 添加提醒
         async function addReminder(event) {
             event.preventDefault();
-            
+
             const title = document.getElementById('title').value;
             const content = document.getElementById('content').value;
             const remindTime = document.getElementById('remindTime').value;
@@ -286,12 +294,12 @@
         function calculateNextRemindTime(currentTime, cycleType) {
             const date = new Date(currentTime);
             const timestamp = date.getTime();
-            
+
             // 计算各个周期的毫秒
             const DAY_MS = 24 * 60 * 60 * 1000;
             const WEEK_MS = 7 * DAY_MS;
-            
-            switch(cycleType) {
+
+            switch (cycleType) {
                 case 'weekly':
                     return new Date(timestamp + WEEK_MS);
                 case 'monthly': {
@@ -302,15 +310,15 @@
                     const hour = date.getHours();
                     const minute = date.getMinutes();
                     const second = date.getSeconds();
-                    
+
                     // 创建下个月的同一天
                     let nextDate = new Date(year, month + 1, day, hour, minute, second);
-                    
+
                     // 如果结果是无效日期（比如 1月31日 -> 2月31日），回退到月底
                     if (nextDate.getMonth() !== (month + 1) % 12) {
                         nextDate = new Date(year, month + 2, 0, hour, minute, second); // 设置为下个月的最后一天
                     }
-                    
+
                     return nextDate;
                 }
                 case 'yearly': {
@@ -320,15 +328,15 @@
                     const hour = date.getHours();
                     const minute = date.getMinutes();
                     const second = date.getSeconds();
-                    
+
                     // 创建明年的同一天
                     let nextDate = new Date(year + 1, month, day, hour, minute, second);
-                    
+
                     // 处理2月29日的特殊情况
                     if (month === 1 && day === 29 && !isLeapYear(year + 1)) {
                         nextDate = new Date(year + 1, 1, 28, hour, minute, second);
                     }
-                    
+
                     return nextDate;
                 }
                 default:
@@ -350,7 +358,7 @@
                     throw new Error(error || '加载失败');
                 }
                 const reminders = await response.json();
-                
+
                 const listElement = document.getElementById('remindersList');
                 listElement.innerHTML = '';
 
@@ -477,11 +485,11 @@
         const openBtn = document.getElementById('openAddForm');
         const closeBtn = document.getElementsByClassName('close')[0];
 
-        openBtn.onclick = function() {
+        openBtn.onclick = function () {
             modal.style.display = "block";
         }
 
-        closeBtn.onclick = function() {
+        closeBtn.onclick = function () {
             closeModal();
         }
 
@@ -490,7 +498,7 @@
             document.getElementById('reminderForm').reset();
         }
 
-        window.onclick = function(event) {
+        window.onclick = function (event) {
             if (event.target == modal) {
                 closeModal();
             }
@@ -498,7 +506,7 @@
 
         // 事件监听
         document.getElementById('reminderForm').addEventListener('submit', addReminder);
-        
+
         // 初始加载
         loadReminders();
 
@@ -507,6 +515,63 @@
         const now = new Date();
         now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
         remindTimeInput.min = now.toISOString().slice(0, 16);
+
+        // 添加密码验证相关函数
+        async function verifyPassword() {
+            const password = document.getElementById('password-input').value;
+            try {
+                const response = await fetch('/api/verify-password', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ password })
+                });
+                
+                if (response.ok) {
+                    document.getElementById('password-overlay').style.display = 'none';
+                    document.body.classList.remove('locked'); // 移除锁定
+                    // 设置cookie，有效期30天
+                    const expiryDate = new Date();
+                    expiryDate.setDate(expiryDate.getDate() + 30);
+                    document.cookie = `auth=true; expires=${expiryDate.toUTCString()}; path=/`;
+                } else {
+                    alert('密码错误');
+                }
+            } catch (error) {
+                alert('验证失败，请重试');
+            }
+        }
+
+        // 检查cookie
+        window.onload = function() {
+            // 先检查是否需要验证密码
+            fetch('/api/verify-password', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ password: '' })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // 如果服务器没有设置密码，直接设置cookie
+                    const expiryDate = new Date();
+                    expiryDate.setDate(expiryDate.getDate() + 30);
+                    document.cookie = `auth=true; expires=${expiryDate.toUTCString()}; path=/`;
+                    document.body.classList.remove('locked'); // 移除锁定
+                } else if (!document.cookie.includes('auth=true')) {
+                    // 如果需要密码且没有验证过，显示密码输入框
+                    document.getElementById('password-overlay').style.display = 'flex';
+                    document.body.classList.add('locked'); // 添加锁定
+                }
+            })
+            .catch(error => {
+                console.error('Error checking password requirement:', error);
+            });
+        }
     </script>
 </body>
-</html> 
+
+</html>
