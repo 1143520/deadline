@@ -119,6 +119,33 @@ export async function onRequest(context) {
             }
         }
 
+        // 发送到WXPusher
+        if (env.WXPUSHER_KEY) {
+            try {
+                const displayTime = new Date(new Date(reminder.remind_time).getTime());
+                const cycleText = {
+                    'once': '单次提醒',
+                    'weekly': '每周循环',
+                    'monthly': '每月循环',
+                    'yearly': '每年循环'
+                }[reminder.cycle_type] || '单次提醒';
+                const wxPusherMessage = {
+                    title: `🔔 提醒：${reminder.title}`,
+                    content: `${reminder.content}\n\n⏰ 提醒时间：${displayTime.toLocaleString('zh-CN')}\n\n📅 循环类型：${cycleText}`,
+                };
+                const wxPusherURL = `https://wxpusher.zjiecode.com/api/send/message/${env.WXPUSHER_KEY}/${encodeURIComponent(wxPusherMessage.title)}/${encodeURIComponent(wxPusherMessage.content)}`;
+                const wxPusherResponse = await fetch(wxPusherURL);
+                const wxPusherResult = await wxPusherResponse.json();
+                notificationResults.push({ platform: 'wxpusher', success: wxPusherResponse.ok, result: wxPusherResult });
+                if (!wxPusherResponse.ok) {
+                    console.error('WXPusher API error:', wxPusherResult);
+                }
+            } catch (error) {
+                console.error('Error sending WXPusher message:', error);
+                notificationResults.push({ platform: 'wxpusher', success: false, error: error.message });
+            }
+        }
+
         // 更新提醒状态为已发送
         await env.DB.prepare(
             'UPDATE reminders SET status = 1 WHERE id = ?'
